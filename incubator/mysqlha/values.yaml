@@ -2,7 +2,7 @@
 ## ref: https://hub.docker.com/r/library/mysql/tags/
 ##
 mysqlImage: mysql:5.7.13
-xtraBackupImage: gcr.io/google-samples/xtrabackup:1.0
+xtraBackupImage: kingsd/xtrabackup:1.0
 
 mysqlha:
   replicaCount: 3
@@ -64,3 +64,17 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+
+metrics:
+  enabled: false
+  image: prom/mysqld-exporter
+  imageTag: v0.11.0
+  imagePullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+service:
+  type: NodePort

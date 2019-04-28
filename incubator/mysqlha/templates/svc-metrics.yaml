@@ -1,0 +1,22 @@
+{{- if .Values.metrics.enabled }}
+{{- range $i, $v :=  until (int .Values.mysqlha.replicaCount) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" $ }}-exporter-{{ $i }}
+  labels:
+    app: {{ template "fullname" $ }}
+    chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    release: "{{ $.Release.Name }}"
+    heritage: "{{ $.Release.Service }}"
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+  - name: {{ template "fullname" $ }}
+    port: 9104
+  selector:
+    app: {{ template "fullname" $ }}
+    statefulset.kubernetes.io/pod-name: {{ template "fullname" $ }}-{{ $i }}
+{{- end }}
+{{- end }}

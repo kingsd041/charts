@@ -33,25 +33,30 @@ $ helm delete my-release
 
 The following table lists the configurable parameters of the MySQL chart and their default values.
 
-| Parameter                  | Description                         | Default                                |
-| -----------------------    | ----------------------------------- | -------------------------------------- |
-| `mysqlImage`               | `mysql` image and tag.              | `mysql:5.7.13`                         |
-| `xtraBackupImage`          | `xtrabackup` image and tag.         | `gcr.io/google-samples/xtrabackup:1.0` |
-| `replicaCount`             | Number of MySQL replicas            | 3                                      |
-| `mysqlRootPassword`        | Password for the `root` user.       | Randomly generated                     |
-| `mysqlUser`                | Username of new user to create.     | `nil`                                  |
-| `mysqlPassword`            | Password for the new user.          | Randomly generated                     |
-| `mysqlReplicationUser`     | Username for replication user       | `repl`                                 |
-| `mysqlReplicationPassword` | Password for replication user.      | Randomly generated                     |
-| `mysqlDatabase`            | Name of the new Database to create  | `nil`                                  |
-| `configFiles.master.cnf`   | Master configuration file           | See `values.yaml`                      |
-| `configFiles.slave.cnf`    | Slave configuration file            | See `values.yaml`                      |
-| `persistence.enabled`      | Create a volume to store data       | true                                   |
-| `persistence.size`         | Size of persistent volume claim     | 10Gi                                   |
-| `persistence.storageClass` | Type of persistent volume claim     | `nil`                                  |
-| `persistence.accessModes`  | Persistent volume access modes      | `[ReadWriteOnce]`                      |
-| `persistence.annotations`  | Persistent volume annotations       | `{}`                                   |
-| `resources`                | CPU/Memory resource requests/limits | Memory: `128Mi`, CPU: `100m`           |
+| Parameter                                    | Description                                       | Default                                |
+| -----------------------------------------    | ------------------------------------------------- | -------------------------------------- |
+| `mysqlImage`                                 | `mysql` image and tag.                            | `mysql:5.7.13`                         |
+| `xtraBackupImage`                            | `xtrabackup` image and tag.                       | `gcr.io/google-samples/xtrabackup:1.0` |
+| `replicaCount`                               | Number of MySQL replicas                          | 3                                      |
+| `mysqlRootPassword`                          | Password for the `root` user.                     | Randomly generated                     |
+| `mysqlUser`                                  | Username of new user to create.                   | `nil`                                  |
+| `mysqlPassword`                              | Password for the new user.                        | Randomly generated                     |
+| `mysqlReplicationUser`                       | Username for replication user                     | `repl`                                 |
+| `mysqlReplicationPassword`                   | Password for replication user.                    | Randomly generated                     |
+| `mysqlDatabase`                              | Name of the new Database to create                | `nil`                                  |
+| `configFiles.master.cnf`                     | Master configuration file                         | See `values.yaml`                      |
+| `configFiles.slave.cnf`                      | Slave configuration file                          | See `values.yaml`                      |
+| `persistence.enabled`                        | Create a volume to store data                     | true                                   |
+| `persistence.size`                           | Size of persistent volume claim                   | 10Gi                                   |
+| `persistence.storageClass`                   | Type of persistent volume claim                   | `nil`                                  |
+| `persistence.accessModes`                    | Persistent volume access modes                    | `[ReadWriteOnce]`                      |
+| `persistence.annotations`                    | Persistent volume annotations                     | `{}`                                   |
+| `resources`                                  | CPU/Memory resource requests/limits               | Memory: `128Mi`, CPU: `100m`           |
+| `metrics.enabled`                            | Start a side-car prometheus exporter              | false                                  |
+| `metrics.image`                              | Exporter image                                    | `prom/mysqld-exporter`                 |
+| `metrics.imageTag`                           | Exporter image                                    | `v0.10.0`                              |
+| `metrics.imagePullPolicy`                    | Exporter image pull policy                        | `IfNotPresent`                         |
+| `metrics.resources`                          | Exporter resource requests/limit                  | See `values.yaml`                      |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
