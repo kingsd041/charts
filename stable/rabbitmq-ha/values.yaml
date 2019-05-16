@@ -472,35 +472,6 @@ prometheus:
      #   cpu: 100m
      #   memory: 100Mi
 
-  ## Prometheus is using Operator.  Setting to true will create Operator specific resources like ServiceMonitors and Alerts
-  operator:
-    ## Are you using Prometheus Operator? [Blog Post](https://coreos.com/blog/the-prometheus-operator.html)
-    enabled: true
-
-    ## Configures Alerts, which will be setup via Prometheus Operator / ConfigMaps.
-    alerts:
-      ## Prometheus exporter must be enabled as well
-      enabled: true
-
-      ## Selector must be configured to match Prometheus Install, defaulting to whats done by Prometheus Operator
-      ## See [CoreOS Prometheus Chart](https://github.com/coreos/prometheus-operator/tree/master/helm)
-      selector:
-        role: alert-rules
-      labels: {}
-
-    serviceMonitor:
-      ## Interval at which Prometheus scrapes RabbitMQ Exporter
-      interval: 10s
-
-      # Namespace Prometheus is installed in
-      namespace: monitoring
-
-      ## Defaults to whats used if you follow CoreOS [Prometheus Install Instructions](https://github.com/coreos/prometheus-operator/tree/master/helm#tldr)
-      ## [Prometheus Selector Label](https://github.com/coreos/prometheus-operator/blob/master/helm/prometheus/templates/prometheus.yaml#L65)
-      ## [Kube Prometheus Selector Label](https://github.com/coreos/prometheus-operator/blob/master/helm/kube-prometheus/values.yaml#L298)
-      selector:
-        prometheus: kube-prometheus
-
 ## Kubernetes Cluster Domain
 clusterDomain: cluster.local
 
