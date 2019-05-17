@@ -13,7 +13,7 @@ metadata:
 spec:
   podManagementPolicy: {{ .Values.podManagementPolicy }}
   serviceName: {{ template "rabbitmq-ha.fullname" . }}-discovery
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicas }}
   updateStrategy:
     type: {{ .Values.updateStrategy }}
   template:
@@ -54,7 +54,7 @@ spec:
               mountPath: /configmap
             - name: config
               mountPath: /etc/rabbitmq
-            - name: {{ .Values.persistentVolume.name }}
+            - name: {{ .Values.persistence.name }}
               mountPath: /var/lib/rabbitmq
       containers:
         - name: {{ .Chart.Name }}
@@ -157,7 +157,7 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           volumeMounts:
-            - name: {{ .Values.persistentVolume.name }}
+            - name: {{ .Values.persistence.name }}
               mountPath: /var/lib/rabbitmq
             - name: config
               mountPath: /etc/rabbitmq
@@ -259,30 +259,30 @@ spec:
         {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 8 }}
         {{- end }}
-{{- if .Values.persistentVolume.enabled }}
+{{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
-        name: {{ .Values.persistentVolume.name }}
+        name: {{ .Values.persistence.name }}
         annotations:
-        {{- range $key, $value := .Values.persistentVolume.annotations }}
+        {{- range $key, $value := .Values.persistence.annotations }}
           {{ $key }}: {{ $value }}
         {{- end }}
       spec:
         accessModes:
-        {{- range .Values.persistentVolume.accessModes }}
+        {{- range .Values.persistence.accessModes }}
           - {{ . | quote }}
         {{- end }}
         resources:
           requests:
-            storage: {{ .Values.persistentVolume.size | quote }}
-      {{- if .Values.persistentVolume.storageClass }}
-      {{- if (eq "-" .Values.persistentVolume.storageClass) }}
+            storage: {{ .Values.persistence.size | quote }}
+      {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
         storageClassName: ""
       {{- else }}
-        storageClassName: "{{ .Values.persistentVolume.storageClass }}"
+        storageClassName: "{{ .Values.persistence.storageClass }}"
       {{- end }}
       {{- end }}
 {{- else }}
-        - name: {{ .Values.persistentVolume.name }}
+        - name: {{ .Values.persistence.name }}
           emptyDir: {}
 {{- end }}

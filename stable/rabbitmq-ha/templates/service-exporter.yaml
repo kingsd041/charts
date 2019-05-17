@@ -1,5 +1,5 @@
 {{- if .Values.prometheus.exporter.enabled }}
-{{- range $i, $v :=  until (int .Values.replicaCount) }}
+{{- range $i, $v :=  until (int .Values.replicas) }}
 ---
 apiVersion: v1
 kind: Service

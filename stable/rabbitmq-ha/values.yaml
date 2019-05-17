@@ -11,6 +11,7 @@ managementUsername: management
 ## Place any additional key/value configuration to add to rabbitmq.conf
 ## Ref: https://www.rabbitmq.com/configure.html#config-items
 extraConfig: |
+#  cluster_partition_handling = ignore
 #  queue_master_locator = min-masters
 
 ## Place advanced.config file in /etc/rabbitmq/advanced.config
@@ -264,7 +265,7 @@ rabbitmqAmqpsSupport:
     # ssl_options.fail_if_no_peer_cert  = false
 
 ## Number of replicas
-replicaCount: 3
+replicas: 3
 
 image:
   repository: rabbitmq
@@ -347,7 +348,7 @@ initContainer:
 # schedulerName:
 
 ## Data Persistency
-persistentVolume:
+persistence:
   enabled: false
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
