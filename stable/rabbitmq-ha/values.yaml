@@ -458,8 +458,6 @@ prometheus:
       tag: v0.29.0
       pullPolicy: IfNotPresent
 
-    ## Port Prometheus scrapes for metrics
-    port: 9090
     ## Comma-separated list of extended scraping capabilities supported by the target RabbitMQ server
     capabilities: "bert,no_sort"
 
@@ -471,6 +469,13 @@ prometheus:
      # requests:
      #   cpu: 100m
      #   memory: 100Mi
+
+    type: NodePort # ClusterIP/NodePort/LoadBalancer
+    ports:
+      metrics:
+        port: 9090  # Service port number for client port.
+        argetPort: exporter  # Service target port for client port.
+        protocol: TCP  # Service port protocol for client port.
 
 ## Kubernetes Cluster Domain
 clusterDomain: cluster.local

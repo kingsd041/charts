@@ -1,0 +1,32 @@
+{{- if .Values.prometheus.exporter.enabled }}
+{{- range $i, $v :=  until (int .Values.replicaCount) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+{{- if $.Values.service.annotations }}
+{{ toYaml $.Values.service.annotations | indent 4 }}
+{{- end }}
+  name: {{ template "rabbitmq-ha.fullname" $ }}-exporter-{{ $i }}
+  labels:
+    app: {{ template "rabbitmq-ha.name" $ }}
+    chart: {{ template "rabbitmq-ha.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+{{- if $.Values.extraLabels }}
+{{ toYaml $.Values.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  type: {{ $.Values.prometheus.exporter.type }}
+  ports:
+  {{- range $key, $value := $.Values.prometheus.exporter.ports }}
+    - name: {{ $key }}
+{{ toYaml $value | indent 6 }}
+  {{- end }}
+  publishNotReadyAddresses: true
+  selector:
+    app: {{ template "rabbitmq-ha.name" $ }}
+    release: {{ $.Release.Name }}
+    statefulset.kubernetes.io/pod-name: {{ template "rabbitmq-ha.fullname" $ }}-{{ $i }}
+{{- end }}
+{{- end }}
