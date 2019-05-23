@@ -305,6 +305,8 @@ service:
   epmdNodePort: null
   amqpNodePort: null
   managerNodePort: null
+  exporterService:
+    enabled: true
 
 podManagementPolicy: OrderedReady
 

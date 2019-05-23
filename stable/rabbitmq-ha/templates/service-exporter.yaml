@@ -1,4 +1,5 @@
 {{- if .Values.prometheus.exporter.enabled }}
+{{- if .Values.service.exporterService.enabled }}
 {{- range $i, $v :=  until (int .Values.replicas) }}
 ---
 apiVersion: v1
@@ -28,5 +29,6 @@ spec:
     app: {{ template "rabbitmq-ha.name" $ }}
     release: {{ $.Release.Name }}
     statefulset.kubernetes.io/pod-name: {{ template "rabbitmq-ha.fullname" $ }}-{{ $i }}
+{{- end }}
 {{- end }}
 {{- end }}
