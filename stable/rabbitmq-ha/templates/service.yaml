@@ -40,6 +40,12 @@ spec:
       port: {{ .Values.rabbitmqNodePort }}
       nodePort: {{ .Values.service.amqpNodePort }}
       targetPort: amqp
+    {{- if .Values.rabbitmqAmqpsSupport.enabled }}
+    - name: amqps
+      protocol: TCP
+      port: {{ .Values.rabbitmqAmqpsSupport.amqpsNodePort }}
+      targetPort: amqps
+    {{- end }}
     {{- end }}
     - name: epmd
       protocol: TCP
@@ -77,12 +83,6 @@ spec:
       protocol: TCP
       port: 15675
       targetPort: mqtt-ws
-    {{- end }}
-    {{- if .Values.rabbitmqAmqpsSupport.enabled }}
-    - name: amqps
-      protocol: TCP
-      port: {{ .Values.rabbitmqAmqpsSupport.amqpsNodePort }}
-      targetPort: amqps
     {{- end }}
   selector:
     app: {{ template "rabbitmq-ha.name" . }}

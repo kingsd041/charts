@@ -7,7 +7,7 @@ metadata:
 {{- if $.Values.service.annotations }}
 {{ toYaml $.Values.service.annotations | indent 4 }}
 {{- end }}
-  name: {{ template "rabbitmq-ha.fullname" $ }}-ampq-{{ $i }}
+  name: {{ template "rabbitmq-ha.fullname" $ }}-amqp-{{ $i }}
   labels:
     app: {{ template "rabbitmq-ha.name" $ }}
     chart: {{ template "rabbitmq-ha.chart" $ }}

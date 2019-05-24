@@ -317,7 +317,10 @@ service:
         port: 5672  # Service port number for client port.
         argetPort: amqp  # Service target port for client port.
         protocol: TCP  # Service port protocol for client port.
-
+      amqps:
+        port: 5671  # Service port number for client port.
+        argetPort: amqps  # Service target port for client port.
+        protocol: TCP  # Service port protocol for client port.
 podManagementPolicy: OrderedReady
 
 ## Statefulsets rolling update update strategy
@@ -485,7 +488,7 @@ prometheus:
 
     type: NodePort # ClusterIP/NodePort/LoadBalancer
     ports:
-      metrics:
+      exporter:
         port: 9090  # Service port number for client port.
         argetPort: exporter  # Service target port for client port.
         protocol: TCP  # Service port protocol for client port.

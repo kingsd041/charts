@@ -178,7 +178,7 @@ spec:
           ports:
           - name: exporter
             protocol: TCP
-            containerPort: {{ .Values.prometheus.exporter.ports.metrics.port }}
+            containerPort: {{ .Values.prometheus.exporter.ports.exporter.port }}
           env:
             - name: PUBLISH_PORT
               value: "{{ .Values.prometheus.exporter.port }}"
