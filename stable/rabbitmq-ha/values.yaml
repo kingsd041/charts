@@ -305,8 +305,18 @@ service:
   epmdNodePort: null
   amqpNodePort: null
   managerNodePort: null
+
   exporterService:
     enabled: true
+
+  ## Map a svc for each amqp
+  openAllAmqpService:
+    enabled: false
+    ports:
+      amqp:
+        port: 5672  # Service port number for client port.
+        argetPort: amqp  # Service target port for client port.
+        protocol: TCP  # Service port protocol for client port.
 
 podManagementPolicy: OrderedReady
 
