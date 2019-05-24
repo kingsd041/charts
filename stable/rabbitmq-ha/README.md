@@ -242,6 +242,6 @@ the following keys:
 * `rabbitmq-erlang-cookie`
 * `definitions.json` (the name can be altered by setting the `definitionsSource`)
 
-### Prometheus Monitoring & Alerts
+### Prometheus Monitoring
 
 Prometheus and its features can be enabled by setting `prometheus.enabled` to `true`.  See values.yaml for more details and configuration options
