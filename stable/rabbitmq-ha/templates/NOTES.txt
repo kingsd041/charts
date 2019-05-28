@@ -15,13 +15,21 @@
 {{- if contains "NodePort" .Values.service.type }}
 
     export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[?(@.type=='ExternalIP')].address}")
-    export NODE_PORT_AMQP=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="amqp")].nodePort}' services {{ template "rabbitmq-ha.fullname" . }})
-    {{- if .Values.rabbitmqAmqpsSupport.enabled }}
-    export NODE_PORT_AMQPS=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="amqps")].nodePort}' services {{ template "rabbitmq-ha.fullname" . }})
+    {{- range $i, $v :=  until (int .Values.replicas) }}
+    export NODE_PORT_AMQP-{{ $i }}=$(kubectl get --namespace {{ $.Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="amqp")].nodePort}' services {{ template "rabbitmq-ha.fullname" $ }}-amqp-{{ $i }})
+    {{- end }}
+    {{- if $.Values.rabbitmqAmqpsSupport.enabled }}
+    {{- range $i, $v :=  until (int .Values.replicas) }}
+    export NODE_PORT_AMQPS-{{ $i }}=$(kubectl get --namespace {{ $.Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="amqps")].nodePort}' services {{ template "rabbitmq-ha.fullname" $ }}-amqp-{{ $i }})
+    {{- end }}
     {{- end }}
     export NODE_PORT_STATS=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}' services {{ template "rabbitmq-ha.fullname" . }})
     {{- if .Values.prometheus.exporter.enabled }}
-    export NODE_PORT_RABBITMQ_EXPORTER=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="exporter")].nodePort}' services {{ template "rabbitmq-ha.fullname" . }})
+    {{- if .Values.service.exporterService.enabled }}
+    {{- range $i, $v :=  until (int .Values.replicas) }}
+    export NODE_PORT_RABBITMQ_EXPORTER-{{ $i }}=$(kubectl get --namespace {{ $.Release.Namespace }} -o jsonpath='{.spec.ports[?(@.name=="exporter")].nodePort}' services {{ template "rabbitmq-ha.fullname" $ }}-exporter-{{ $i }})
+    {{- end }} 
+    {{- end }}  
     {{- end }}  
   To Access the RabbitMQ AMQP port:
 
@@ -65,7 +73,7 @@
 {{- if .Values.prometheus.exporter.enabled }}
   To Access the RabbitMQ Exporter metrics port:
     
-    http://$SERVICE_IP:{{ .Values.prometheus.exporter.port }}/
+    http://$SERVICE_IP:{{ .Values.prometheus.exporter.ports.exporter.port }}/
 {{- end }} 
 
   To Access the RabbitMQ Management interface:
@@ -81,7 +89,7 @@
     {{- end }}
     
     {{- if .Values.prometheus.exporter.enabled }}
-    kubectl port-forward $POD_NAME --namespace {{ .Release.Namespace }} {{ .Values.prometheus.exporter.port }}:{{ .Values.prometheus.exporter.port }} 
+    kubectl port-forward $POD_NAME --namespace {{ .Release.Namespace }} {{ .Values.prometheus.exporter.ports.exporter.port }}:{{ .Values.prometheus.exporter.ports.exporter.port }} 
     {{- end }}
 
   To Access the RabbitMQ AMQP port:
@@ -97,7 +105,7 @@
 {{- if .Values.prometheus.exporter.enabled }}
   To Access the RabbitMQ Exporter metrics port:
     
-    http://127.0.0.1:{{ .Values.prometheus.exporter.port }}/
+    http://127.0.0.1:{{ .Values.prometheus.exporter.ports.exporter.port }}/
 {{- end }} 
 
   To Access the RabbitMQ Management interface:
