@@ -9,7 +9,7 @@
 
 ## 应用的部署和使用
 
-安装名为“my-release”的charts:
+安装名为`my-release`的charts:
 
 ```bash
 $ helm install --name my-release stable/rabbitmq-ha
@@ -24,7 +24,7 @@ $ helm install --name my-release stable/rabbitmq-ha
 | `managementUsername`                          | 管理用户名                                                                                                                  | `management`                                                   |
 | `managementPassword`                          | 管理用户密码                                                                                                                  | `随机24位字符串`                                                   |
 | `rabbitmqVhost`                          | 默认vhost                                                                                                                  | `"/"`                                                   |
-| `rabbitmqErlangCookie`                          | Erlang cookie	                                                                                                                  | `随机32个为字符串`                                                   |
+| `rabbitmqErlangCookie`                          | Erlang cookie	                                                                                                                  | `随机32位字符串`                                                   |
 | `rabbitmqClusterPartitionHandling`                          | 自动分区处理策略                                                                                                                  | `autoheal`                                                   |
 | `openAllAmqpService.enabled`                          | 为每个amqp单独映射一个服务                                                                                                                  | `false`                                                   |
 | `prometheus.exporter.enabled`                          | 配置Prometheus Exporter                                                                                                                | `false`                                                   |
