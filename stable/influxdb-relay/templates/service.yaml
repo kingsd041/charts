@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "influxdb-relay.fullname" . }}
+  labels:
+    app: {{ template "influxdb-relay.name" . }}
+    chart: {{ template "influxdb-relay.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.relay_port }}
+      targetPort: {{ .Values.relay_port }}
+      protocol: TCP
+      name: relay-tcp
+{{- if .Values.service.udp_enabled }}
+    - port: {{ .Values.relay_port }}
+      targetPort: {{ .Values.relay_port }}
+      protocol: UDP
+      name: relay-udp
+{{ end }}
+  selector:
+    app: {{ template "influxdb-relay.name" . }}
+    release: {{ .Release.Name }}

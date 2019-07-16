@@ -1,0 +1,12 @@
+apiVersion: v1
+appVersion: "1.7"
+description: A Helm chart for deloying influxdb-relay to a Kubernetes cluster 
+name: influxdb-relay
+version: 0.1.0
+keywords: 
+- influxdb
+- influxdb-relay
+home: https://www.github.com/ahibbitt/influxdb-relay
+maintainers:
+- name: Alex Hibbitt
+engine: gotpl

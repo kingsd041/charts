@@ -1,0 +1,76 @@
+# Default values for influxdb-relay.
+
+replicaCount: 2
+
+image:
+  repository: vptech/influxdb-relay
+  tag: latest
+  pullPolicy: IfNotPresent
+
+## Specify a service type
+## NodePort is default
+## ref: http://kubernetes.io/docs/user-guide/services/
+##
+service:
+  type: NodePort
+  ##  If using NodePort or ClusterIP, UDP is supported. If using LoadBalancer, consult your LoadBalancer providers docs to see if UDP is supported
+  udp_enabled: false
+  ## Add annotations to service
+  # annotations: {}
+
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 0.1
+  limits:
+    memory: 16Gi
+    cpu: 8
+
+## Configure ingress support
+ingress:
+  enabled: false
+  tls: false
+  # secretName: my-tls-cert # only needed if tls above is true
+  hostname: influxdb-relay.foobar.com
+  annotations:
+    # kubernetes.io/ingress.class: "nginx"
+    # kubernetes.io/tls-acme: "true"
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+nodeSelector: {}
+
+## Pod AntiAffinity
+## toggling to true will enable a soft antiaffinity rule, which will try to distribute pods across nodes
+podAntiAffinity:
+  enabled: true
+
+## Relay Port
+## Sets the port for the influxdb-relay container. Should match the HTTP_BIND_ADDR & UDP_BIND_ADDR environmental variables passed to the application
+relay_port: 9096
+
+## The influxdb-relay image uses several environment variables to configure backends to relay to, bind addresses and MTUs
+## Ref: https://www.github.com/ahibbitt/influxdb-relay
+env:
+   - name: HTTP_BIND_ADDR
+     value: ":9096"
+   - name: UDP_BIND_ADDR
+     value: ":9096"
+   - name: UDP_MTU
+     value: "512"
+   - name: HTTP_BACKEND_influxdb-a
+     value: "influx-euw1a-influxdb:8086"
+   - name: UDP_BACKEND_influxdb-a
+     value: "influx-euw1a-influxdb:8086"
+   - name: HTTP_BACKEND_influxdb-b
+     value: "influx-euw1b-influxdb:8086"
+   - name: UDP_BACKEND_influxdb-b
+     value: "influx-euw1b-influxdb:8086"
+   - name: HTTP_BACKEND_influxdb-c
+     value: "influx-euw1c-influxdb:8086"
+   - name: UDP_BACKEND_influxdb-c
+     value: "influx-euw1c-influxdb:8086"
