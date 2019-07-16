@@ -55,22 +55,25 @@ relay_port: 9096
 
 ## The influxdb-relay image uses several environment variables to configure backends to relay to, bind addresses and MTUs
 ## Ref: https://www.github.com/ahibbitt/influxdb-relay
-env:
-   - name: HTTP_BIND_ADDR
-     value: ":9096"
-   - name: UDP_BIND_ADDR
-     value: ":9096"
-   - name: UDP_MTU
-     value: "512"
-   - name: HTTP_BACKEND_influxdb-a
-     value: "influx-euw1a-influxdb:8086"
-   - name: UDP_BACKEND_influxdb-a
-     value: "influx-euw1a-influxdb:8086"
-   - name: HTTP_BACKEND_influxdb-b
-     value: "influx-euw1b-influxdb:8086"
-   - name: UDP_BACKEND_influxdb-b
-     value: "influx-euw1b-influxdb:8086"
-   - name: HTTP_BACKEND_influxdb-c
-     value: "influx-euw1c-influxdb:8086"
-   - name: UDP_BACKEND_influxdb-c
-     value: "influx-euw1c-influxdb:8086"
+# env:
+#    - name: HTTP_BIND_ADDR
+#      value: ":9096"
+#    - name: UDP_BIND_ADDR
+#      value: ":9096"
+#    - name: UDP_MTU
+#      value: "512"
+#    - name: HTTP_BACKEND_influxdb-a
+#      value: "influx-euw1a-influxdb:8086"
+#    - name: UDP_BACKEND_influxdb-a
+#      value: "influx-euw1a-influxdb:8086"
+#    - name: HTTP_BACKEND_influxdb-b
+#      value: "influx-euw1b-influxdb:8086"
+#    - name: UDP_BACKEND_influxdb-b
+#      value: "influx-euw1b-influxdb:8086"
+#    - name: HTTP_BACKEND_influxdb-c
+#      value: "influx-euw1c-influxdb:8086"
+#    - name: UDP_BACKEND_influxdb-c
+#      value: "influx-euw1c-influxdb:8086"
+
+config:
+  
