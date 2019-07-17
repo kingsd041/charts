@@ -17,6 +17,7 @@ service:
   udp_enabled: false
   ## Add annotations to service
   # annotations: {}
+  default_dns_suffix: svc.cluster.local
 
 
 ## Configure resource requests and limits
@@ -53,27 +54,48 @@ podAntiAffinity:
 ## Sets the port for the influxdb-relay container. Should match the HTTP_BIND_ADDR & UDP_BIND_ADDR environmental variables passed to the application
 relay_port: 9096
 
-## The influxdb-relay image uses several environment variables to configure backends to relay to, bind addresses and MTUs
-## Ref: https://www.github.com/ahibbitt/influxdb-relay
-# env:
-#    - name: HTTP_BIND_ADDR
-#      value: ":9096"
-#    - name: UDP_BIND_ADDR
-#      value: ":9096"
-#    - name: UDP_MTU
-#      value: "512"
-#    - name: HTTP_BACKEND_influxdb-a
-#      value: "influx-euw1a-influxdb:8086"
-#    - name: UDP_BACKEND_influxdb-a
-#      value: "influx-euw1a-influxdb:8086"
-#    - name: HTTP_BACKEND_influxdb-b
-#      value: "influx-euw1b-influxdb:8086"
-#    - name: UDP_BACKEND_influxdb-b
-#      value: "influx-euw1b-influxdb:8086"
-#    - name: HTTP_BACKEND_influxdb-c
-#      value: "influx-euw1c-influxdb:8086"
-#    - name: UDP_BACKEND_influxdb-c
-#      value: "influx-euw1c-influxdb:8086"
 
 config:
-  
+  http:
+    name: relay-http
+    bind_addr: :9096
+    health_timeout_ms: 10000
+    rate_limit: 5
+    burst_limit: 10
+    default_ping_response: 200
+  http_output:
+    name: http-backend
+    # location: http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
+    endpoints: write="/write",ping="/ping",query="/query"
+    timeout: 10s
+    skip_tls_verification: false
+  udp:
+    name: relay-udp
+    bind_addr: :9096
+    read_buffer: 0
+    precision: "n"
+  udp_output:
+    name: udp-backend
+    # location: {{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
+    mtu: 512
+
+
+
+
+
+## ------------------------------------------------------
+## InfluxDB
+## ------------------------------------------------------
+influxdb:
+  ## If true, install the influxdb chart alongside influxdb-relay
+  ## ref: ../influxdb
+  enabled: true
+  replicas: 2
+  persistence:
+    enabled: true
+    size: 8Gi
+  config:
+    http:
+      bind_address: 8086
+    udp:
+      bind_address: 8089

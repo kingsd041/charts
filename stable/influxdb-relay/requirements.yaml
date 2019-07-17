@@ -1,0 +1,5 @@
+dependencies:
+- name: influxdb
+  version: 1.1.9
+  repository: file://../influxdb
+  condition: influxdb.enabled

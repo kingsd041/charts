@@ -21,4 +21,4 @@ spec:
       name: relay-udp
 {{ end }}
   selector:
-    app: {{ template "influxdb-relay.name" . }}
+    app: {{ template "influxdb-relay.fullname" . }}
