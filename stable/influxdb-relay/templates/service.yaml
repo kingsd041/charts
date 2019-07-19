@@ -14,7 +14,7 @@ spec:
       targetPort: {{ .Values.relay_port }}
       protocol: TCP
       name: relay-tcp
-{{- if .Values.service.udp_enabled }}
+{{- if .Values.influxdb.config.udp.enabled }}
     - port: {{ .Values.relay_port }}
       targetPort: {{ .Values.relay_port }}
       protocol: UDP

@@ -95,6 +95,7 @@ influxdb:
     http:
       bind_address: 8086
     udp:
+      enabled: true
       bind_address: 8089
 
 ####### Nginx
@@ -200,7 +201,7 @@ nginx:
       sendfile: "on"
       keepalive_timeout: 65
     stream:
-      udp_listen: 53
+      udp_listen: 9096
       proxy_timeout: 1s
       proxy_responses: 1
   

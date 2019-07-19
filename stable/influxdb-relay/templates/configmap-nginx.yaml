@@ -67,7 +67,7 @@ data:
     }
     stream {
       upstream influxdb_udp {
-        server {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.influxdb.config.udp.bind_address }};
+        server {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.relay_port }};
       }
       server {
         listen {{ .Values.nginx.nginxConfig.stream.udp_listen }} udp;

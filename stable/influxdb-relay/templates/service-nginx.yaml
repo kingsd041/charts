@@ -26,11 +26,20 @@ spec:
       {{- if (and (eq .Values.nginx.service.type "NodePort") (not (empty .Values.nginx.service.nodePorts.http)))}}
       nodePort: {{ .Values.nginx.service.nodePorts.http }}
       {{- end }}
-    - name: relay
+    - name: relay-tcp
       port: {{ .Values.relay_port }}
       targetPort: {{ .Values.relay_port }}
       {{- if (and (eq .Values.nginx.service.type "NodePort") (not (empty .Values.nginx.service.nodePorts.relay)))}}
       nodePort: {{ .Values.nginx.service.nodePorts.relay }}
       {{- end }}
+{{- if .Values.influxdb.config.udp.enabled }}
+    - name: relay-udp
+      port: {{ .Values.nginx.nginxConfig.stream.udp_listen }}
+      targetPort: {{ .Values.nginx.nginxConfig.stream.udp_listen }}
+      protocol: UDP
+      {{- if (and (eq .Values.nginx.service.type "NodePort") (not (empty .Values.nginx.service.nodePorts.relay)))}}
+      nodePort: {{ .Values.nginx.service.nodePorts.relay }}
+      {{- end }}
+{{ end }}
   selector:
     app: {{ template "influxdb-relay.fullname" . }}-nginx

@@ -23,6 +23,7 @@ spec:
   {{- if .Values.config.udp.enabled }}
   - name: udp
     port: {{ .Values.config.udp.bind_address }}
+    protocol: UDP
     targetPort: {{ .Values.config.udp.bind_address }}
   {{- end }}
 
