@@ -48,6 +48,11 @@ spec:
           subPath: influxdb.conf
         resources:
 {{ toYaml .Values.nginx.resources | indent 12 }}
+      initContainers:
+      - name: check-influxdb-relay
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.relay_port }}/health']
+     
 {{- if .Values.nginx.metrics.enabled }}
       - name: metrics
         image: {{ template "nginx.metrics.image" . }}

@@ -3,7 +3,7 @@
 replicaCount: 2
 
 image:
-  repository: vptech/influxdb-relay
+  repository: kingsd/influxdb-relay
   tag: latest
   pullPolicy: IfNotPresent
 

@@ -54,6 +54,10 @@ spec:
           mountPath: /etc/influxdb-relay
         configMap:
           name: {{ template "influxdb-relay.fullname" . }}
+      initContainers:
+      - name: check-influxdb
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb-relay.influxdb.fullname" . }}-{{ sub .Values.replicaCount 1 }}.{{ template "influxdb-relay.influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }}/ping']
       volumes:
       - name: config
         configMap:
