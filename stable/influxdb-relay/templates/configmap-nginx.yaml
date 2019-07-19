@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "influxdb-relay.fullname" . }}-nginx-server
+  labels:
+    app: {{ template "influxdb-relay.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  influxdb.conf: |-
+    client_max_body_size {{ default "20M" .Values.nginx.serverConfig.client_max_body_size }};
+    upstream influxdb {
+      server {{ template "influxdb-relay.influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }};
+    }
+    upstream relay {
+      server {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.relay_port }};
+    }
+    server {
+      listen {{ default "9096" .Values.nginx.relay_port }};
+      location /query {
+        limit_except GET {
+          deny all;
+        }
+        proxy_pass http://influxdb;
+      }
+      location ~ /(write|admin|ping|health) {
+        limit_except POST GET {
+          deny all;
+        }
+        proxy_pass http://relay;
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "influxdb-relay.fullname" . }}-nginx-conf
+  labels:
+    app: {{ template "influxdb-relay.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  nginx.conf: |-
+    user  {{ .Values.nginx.nginxConfig.user }};
+    worker_processes  {{ .Values.nginx.nginxConfig.worker_processes }};
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+    events {
+        worker_connections  {{ .Values.nginx.nginxConfig.worker_connections }};
+    }
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        access_log  /var/log/nginx/access.log  main;
+        sendfile        {{ .Values.nginx.nginxConfig.http.sendfile }};
+        #tcp_nopush     on;
+        keepalive_timeout  {{ .Values.nginx.nginxConfig.http.keepalive_timeout }};
+        #gzip  on;
+        include /etc/nginx/conf.d/*.conf;
+    }
+    stream {
+      upstream influxdb_udp {
+        server {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.influxdb.config.udp.bind_address }};
+      }
+      server {
+        listen {{ .Values.nginx.nginxConfig.stream.udp_listen }} udp;
+        proxy_pass influxdb_udp;
+        proxy_timeout {{ .Values.nginx.nginxConfig.stream.proxy_timeout }};
+        proxy_responses {{ .Values.nginx.nginxConfig.stream.proxy_responses }};
+      }
+    }
