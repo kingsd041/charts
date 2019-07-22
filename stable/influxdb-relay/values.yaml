@@ -1,83 +1,84 @@
+
 # Default values for influxdb-relay.
+influxdb-relay:
+  replicaCount: 2
 
-replicaCount: 2
+  image:
+    repository: kingsd/influxdb-relay
+    tag: latest
+    pullPolicy: IfNotPresent
 
-image:
-  repository: kingsd/influxdb-relay
-  tag: latest
-  pullPolicy: IfNotPresent
-
-## Specify a service type
-## NodePort is default
-## ref: http://kubernetes.io/docs/user-guide/services/
-##
-service:
-  type: ClusterIP
-  ##  If using NodePort or ClusterIP, UDP is supported. If using LoadBalancer, consult your LoadBalancer providers docs to see if UDP is supported
-  udp_enabled: false
-  ## Add annotations to service
-  # annotations: {}
-  default_dns_suffix: svc.cluster.local
-
-
-## Configure resource requests and limits
-## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-resources:
-  requests:
-    memory: 256Mi
-    cpu: 0.1
-  limits:
-    memory: 16Gi
-    cpu: 8
-
-## Configure ingress support
-ingress:
-  enabled: false
-  tls: false
-  # secretName: my-tls-cert # only needed if tls above is true
-  hostname: influxdb-relay.foobar.com
-  annotations:
-    # kubernetes.io/ingress.class: "nginx"
-    # kubernetes.io/tls-acme: "true"
-
-## Node labels for pod assignment
-## Ref: https://kubernetes.io/docs/user-guide/node-selection/
-##
-nodeSelector: {}
-
-## Pod AntiAffinity
-## toggling to true will enable a soft antiaffinity rule, which will try to distribute pods across nodes
-podAntiAffinity:
-  enabled: true
-
-## Relay Port
-## Sets the port for the influxdb-relay container. Should match the HTTP_BIND_ADDR & UDP_BIND_ADDR environmental variables passed to the application
-relay_port: 9096
+  ## Specify a service type
+  ## NodePort is default
+  ## ref: http://kubernetes.io/docs/user-guide/services/
+  ##
+  service:
+    type: ClusterIP
+    ##  If using NodePort or ClusterIP, UDP is supported. If using LoadBalancer, consult your LoadBalancer providers docs to see if UDP is supported
+    udp_enabled: false
+    ## Add annotations to service
+    # annotations: {}
+    default_dns_suffix: svc.cluster.local
 
 
-config:
-  http:
-    name: relay-http
-    bind_addr: :9096
-    health_timeout_ms: 10000
-    rate_limit: 5
-    burst_limit: 10
-    default_ping_response: 200
-  http_output:
-    name: http-backend
-    # location: http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
-    endpoints: write="/write",ping="/ping",query="/query"
-    timeout: 10s
-    skip_tls_verification: false
-  udp:
-    name: relay-udp
-    bind_addr: :9096
-    read_buffer: 0
-    precision: "n"
-  udp_output:
-    name: udp-backend
-    # location: {{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
-    mtu: 512
+  ## Configure resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 0.1
+    limits:
+      memory: 16Gi
+      cpu: 8
+
+  ## Configure ingress support
+  ingress:
+    enabled: false
+    tls: false
+    # secretName: my-tls-cert # only needed if tls above is true
+    hostname: influxdb-relay.foobar.com
+    annotations:
+      # kubernetes.io/ingress.class: "nginx"
+      # kubernetes.io/tls-acme: "true"
+
+  ## Node labels for pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  ## Pod AntiAffinity
+  ## toggling to true will enable a soft antiaffinity rule, which will try to distribute pods across nodes
+  podAntiAffinity:
+    enabled: true
+
+  ## Relay Port
+  ## Sets the port for the influxdb-relay container. Should match the HTTP_BIND_ADDR & UDP_BIND_ADDR environmental variables passed to the application
+  relay_port: 9096
+
+
+  config:
+    http:
+      name: relay-http
+      bind_addr: :9096
+      health_timeout_ms: 10000
+      rate_limit: 5
+      burst_limit: 10
+      default_ping_response: 200
+    http_output:
+      name: http-backend
+      # location: http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
+      endpoints: write="/write",ping="/ping",query="/query"
+      timeout: 10s
+      skip_tls_verification: false
+    udp:
+      name: relay-udp
+      bind_addr: :9096
+      read_buffer: 0
+      precision: "n"
+    udp_output:
+      name: udp-backend
+      # location: {{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
+      mtu: 512
 
 
 ## ------------------------------------------------------
@@ -101,6 +102,7 @@ influxdb:
 ####### Nginx
 nginx:
   image:
+    registry: docker.io
     repository: nginx
     tag: 1.17.1
     ## Specify a imagePullPolicy

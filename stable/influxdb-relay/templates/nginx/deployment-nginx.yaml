@@ -1,22 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ template "influxdb-relay.fullname" . }}-nginx
+  name: {{ template "nginx.fullname" . }}
   labels:
-    app: {{ template "influxdb-relay.fullname" . }}-nginx
+    app: {{ template "nginx.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
   selector:
     matchLabels:
-      app: {{ template "influxdb-relay.fullname" . }}-nginx
+      app: {{ template "nginx.fullname" . }}
       release: "{{ .Release.Name }}"
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ template "influxdb-relay.fullname" . }}-nginx
+        app: {{ template "nginx.fullname" . }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
         release: "{{ .Release.Name }}"
         heritage: "{{ .Release.Service }}"
@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
+        image: "{{ template "nginx.image" . }}"
         imagePullPolicy: {{ .Values.nginx.image.pullPolicy | quote }}
         ports:
         - name: http
@@ -79,8 +79,8 @@ spec:
       volumes:
       - name: nginx-block
         configMap:
-          name: {{ template "influxdb-relay.fullname" . }}-nginx-conf
+          name: {{ template "nginx.fullname" . }}-conf
       - name: nginx-server-block
         configMap:
-          name: {{ template "influxdb-relay.fullname" . }}-nginx-server
+          name: {{ template "nginx.fullname" . }}-server
 
