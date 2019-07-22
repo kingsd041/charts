@@ -27,8 +27,8 @@ spec:
       nodePort: {{ .Values.nginx.service.nodePorts.http }}
       {{- end }}
     - name: relay-tcp
-      port: {{ .Values.relay_port }}
-      targetPort: {{ .Values.relay_port }}
+      port: {{ .Values.influxdb_relay.relay_port }}
+      targetPort: {{ .Values.influxdb_relay.relay_port }}
       {{- if (and (eq .Values.nginx.service.type "NodePort") (not (empty .Values.nginx.service.nodePorts.relay)))}}
       nodePort: {{ .Values.nginx.service.nodePorts.relay }}
       {{- end }}

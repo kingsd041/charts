@@ -8,15 +8,15 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.influxdb_relay.service.type }}
   ports:
-    - port: {{ .Values.relay_port }}
-      targetPort: {{ .Values.relay_port }}
+    - port: {{ .Values.influxdb_relay.relay_port }}
+      targetPort: {{ .Values.influxdb_relay.relay_port }}
       protocol: TCP
       name: relay-tcp
 {{- if .Values.influxdb.config.udp.enabled }}
-    - port: {{ .Values.relay_port }}
-      targetPort: {{ .Values.relay_port }}
+    - port: {{ .Values.influxdb_relay.relay_port }}
+      targetPort: {{ .Values.influxdb_relay.relay_port }}
       protocol: UDP
       name: relay-udp
 {{ end }}

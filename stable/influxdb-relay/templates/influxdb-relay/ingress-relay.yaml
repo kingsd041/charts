@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.influxdb_relay.ingress.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -9,20 +9,20 @@ metadata:
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
   annotations:
-{{ toYaml .Values.ingress.annotations | indent 4 }}
+{{ toYaml .Values.influxdb_relay.ingress.annotations | indent 4 }}
 spec:
-{{- if .Values.ingress.tls }}
+{{- if .Values.influxdb_relay.ingress.tls }}
   tls:
     - hosts:
-      - {{ .Values.ingress.hostname | quote }}
-      secretName: {{ .Values.ingress.secretName }}
+      - {{ .Values.influxdb_relay.ingress.hostname | quote }}
+      secretName: {{ .Values.influxdb_relay.ingress.secretName }}
 {{- end }}
   rules:
-  - host: {{ .Values.ingress.hostname }}
+  - host: {{ .Values.influxdb_relay.ingress.hostname }}
     http:
       paths:
       - path: /
         backend:
           serviceName: {{ template "influxdb-relay.fullname" . }}
-          servicePort: {{ .Values.service.port }}
+          servicePort: {{ .Values.influxdb_relay.service.port }}
 {{- end -}}

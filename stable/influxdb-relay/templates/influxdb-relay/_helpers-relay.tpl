@@ -3,7 +3,7 @@
 Expand the name of the chart.
 */}}
 {{- define "influxdb-relay.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.influxdb_relay.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -12,10 +12,10 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "influxdb-relay.fullname" -}}
-{{- if .Values.fullnameOverride -}}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.influxdb_relay.fullnameOverride -}}
+{{- .Values.influxdb_relay.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $name := default .Chart.Name .Values.influxdb_relay.nameOverride -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -29,10 +29,10 @@ Create a default fully qualified influxdb name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "influxdb-relay.influxdb.fullname" -}}
-{{- if .Values.influxdb.fullnameOverride -}}
-{{- .Values.influxdb.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.influxdb_relay.influxdb.fullnameOverride -}}
+{{- .Values.influxdb_relay.influxdb.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default "influxdb" .Values.influxdb.nameOverride -}}
+{{- $name := default "influxdb" .Values.influxdb_relay.influxdb.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}

@@ -1,5 +1,5 @@
 {{- $fullName := include "influxdb-relay.fullname" . }}
-{{- $replicas := .Values.replicaCount | int }}
+{{- $replicas := .Values.influxdb_relay.replicaCount | int }}
 {{- $root := . }}
 
 
@@ -17,21 +17,21 @@ data:
   influxdb-relay.conf: |+
     [[http]]
     # Name of the HTTP server, used for display purposes only.
-    name = "{{ .Values.config.http.name }}"
+    name = "{{ .Values.influxdb_relay.config.http.name }}"
 
     # TCP address to bind to, for HTTP server.
-    bind-addr = "{{ .Values.config.http.bind_addr }}"
+    bind-addr = "{{ .Values.influxdb_relay.config.http.bind_addr }}"
 
     # Timeout for /health route
     # After this time, the host may be considered down
-    health-timeout-ms = {{ .Values.config.http.health_timeout_ms }}
+    health-timeout-ms = {{ .Values.influxdb_relay.config.http.health_timeout_ms }}
 
     # Request limiting (Applied to all backend)
-    rate-limit = {{ .Values.config.http.rate_limit }}
-    burst-limit = {{ .Values.config.http.burst_limit }}
+    rate-limit = {{ .Values.influxdb_relay.config.http.rate_limit }}
+    burst-limit = {{ .Values.influxdb_relay.config.http.burst_limit }}
 
     # Ping response code, default is 204
-    default-ping-response = {{ .Values.config.http.default_ping_response }}
+    default-ping-response = {{ .Values.influxdb_relay.config.http.default_ping_response }}
 
     # Enable HTTPS requests.
     # ssl-combined-pem = "/path/to/influxdb-relay.pem"
@@ -41,47 +41,47 @@ data:
 
     [[http.output]]
     # name: name of the backend, used for display purposes only.
-    name = "{{ $root.Values.config.http_output.name }}-{{ $i }}"
+    name = "{{ $root.Values.influxdb_relay.config.http_output.name }}-{{ $i }}"
 
     # location: full URL of the /write endpoint of the backend
-    location = "http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/"
+    location = "http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/"
     # endpoints: Routes to use on Relay
     # write: Route for standard InfluxDB request
     # write_prom: Route for Prometheus request
     # ping: Route for ping request
     # query: Route fot querying InfluxDB backends
-    endpoints = { {{ $root.Values.config.http_output.endpoints }} }
+    endpoints = { {{ $root.Values.influxdb_relay.config.http_output.endpoints }} }
 
     # timeout: Go-parseable time duration. Fail writes if incomplete in this time.
-    timeout = "{{ $root.Values.config.http_output.timeout }}"
+    timeout = "{{ $root.Values.influxdb_relay.config.http_output.timeout }}"
 
     # skip-tls-verification: skip verification for HTTPS location. WARNING: it's insecure. Don't use in production.
-    skip-tls-verification = {{ $root.Values.config.http_output.skip_tls_verification }}
+    skip-tls-verification = {{ $root.Values.influxdb_relay.config.http_output.skip_tls_verification }}
 {{- end }}
 
 
     [[udp]]
     # Name of the UDP server, used for display purposes only.
-    name = {{ .Values.config.udp.name | quote }}
+    name = {{ .Values.influxdb_relay.config.udp.name | quote }}
 
     # UDP address to bind to.
-    bind-addr = {{ .Values.config.udp.bind_addr | quote }}
+    bind-addr = {{ .Values.influxdb_relay.config.udp.bind_addr | quote }}
 
     # Socket buffer size for incoming connections.
-    read-buffer = {{ .Values.config.udp.read_buffer }} # default
+    read-buffer = {{ .Values.influxdb_relay.config.udp.read_buffer }} # default
 
     # Precision to use for timestamps
-    precision = {{ .Values.config.udp.precision | quote }} # Can be n, u, ms, s, m, h
+    precision = {{ .Values.influxdb_relay.config.udp.precision | quote }} # Can be n, u, ms, s, m, h
 
     # InfluxDB instance to use as backend for Relay.
 {{- range $i, $e := until $replicas }}
     [[udp.output]]
     # name: name of the backend, used for display purposes only.
-    name = "{{ $root.Values.config.udp_output.name }}-{{ $i }}"
+    name = "{{ $root.Values.influxdb_relay.config.udp_output.name }}-{{ $i }}"
 
     # location: host and port of backend.
-    location = "{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}"
+    location = "{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}"
 
     # mtu: maximum output payload size
-    mtu = {{ $root.Values.config.udp_output.mtu }}
+    mtu = {{ $root.Values.influxdb_relay.config.udp_output.mtu }}
 {{ end }}

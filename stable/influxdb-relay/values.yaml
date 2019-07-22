@@ -1,6 +1,6 @@
 
 # Default values for influxdb-relay.
-influxdb-relay:
+influxdb_relay:
   replicaCount: 2
 
   image:

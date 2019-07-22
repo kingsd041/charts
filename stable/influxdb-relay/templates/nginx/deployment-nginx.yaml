@@ -50,8 +50,8 @@ spec:
 {{ toYaml .Values.nginx.resources | indent 12 }}
       initContainers:
       - name: check-influxdb-relay
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.service.default_dns_suffix }}:{{ .Values.relay_port }}/health']
+        image: "{{ .Values.influxdb_relay.image.repository }}:{{ .Values.influxdb_relay.image.tag }}"
+        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb_relay.relay_port }}/health']
      
 {{- if .Values.nginx.metrics.enabled }}
       - name: metrics
