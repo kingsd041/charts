@@ -7,7 +7,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "influxdb-relay.fullname" . }}
+  name: {{ template "influxdb-relay.fullname" . }}-relay
   labels:
     app: {{ template "influxdb-relay.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

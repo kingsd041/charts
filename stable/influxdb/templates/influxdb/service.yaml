@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.influxdb.service.annotations }}
+  annotations:
+{{ toYaml .Values.influxdb.service.annotations | indent 4 }}
+{{- end }}
+  name: {{ template "influxdb.fullname" . }}
+  labels:
+    app: {{ template "influxdb.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  type: {{ .Values.influxdb.service.type }}
+  {{- if .Values.influxdb.service.clusterIP }}
+  clusterIP: {{ .Values.influxdb.service.clusterIP }}
+  {{- end }}
+  {{- if .Values.influxdb.service.externalIPs }}
+  externalIPs:
+  {{ toYaml .Values.influxdb.service.externalIPs | indent 4 }}
+  {{- end }}
+  {{- if .Values.influxdb.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.influxdb.service.loadBalancerIP }}
+  {{- end }}
+  {{- with .Values.influxdb.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ports:
+  {{- if .Values.influxdb.config.http.enabled }}
+  - name: api
+    port: {{ .Values.influxdb.config.http.bind_address }}
+    targetPort: {{ .Values.influxdb.config.http.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.admin.enabled }}
+  - name: admin
+    port: {{ .Values.influxdb.config.admin.bind_address }}
+    targetPort: {{ .Values.influxdb.config.admin.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.graphite.enabled }}
+  - name: graphite
+    port: {{ .Values.influxdb.config.graphite.bind_address }}
+    targetPort: {{ .Values.influxdb.config.graphite.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.collectd.enabled }}
+  - name: collectd
+    port: {{ .Values.influxdb.config.collectd.bind_address }}
+    targetPort: {{ .Values.influxdb.config.collectd.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.udp.enabled }}
+  - name: udp
+    port: {{ .Values.influxdb.config.udp.bind_address }}
+    targetPort: {{ .Values.influxdb.config.udp.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.opentsdb.enabled }}
+  - name: opentsdb
+    port: {{ .Values.influxdb.config.opentsdb.bind_address }}
+    targetPort: {{ .Values.influxdb.config.opentsdb.bind_address }}
+  {{- end }}
+  {{- if .Values.influxdb.config.rpc.enabled }}
+  - name: rpc
+    port: {{ .Values.influxdb.config.rpc.bind_address }}
+    targetPort: {{ .Values.influxdb.config.rpc.bind_address }}
+  {{- end }}
+  selector:
+    app: {{ template "influxdb.fullname" . }}

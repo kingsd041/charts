@@ -1,0 +1,24 @@
+{{- if and (.Values.influxdb.persistence.enabled) (not .Values.influxdb.persistence.useExisting) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "{{- if not (empty .Values.influxdb.persistence.name) }}{{ .Values.influxdb.persistence.name }}{{- else }}{{ template "influxdb.fullname" . }}{{- end }}"
+  labels:
+    app: "{{- if not (empty .Values.influxdb.persistence.name) }}{{ .Values.influxdb.persistence.name }}{{- else }}{{ template "influxdb.fullname" . }}{{- end }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - {{ .Values.influxdb.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.influxdb.persistence.size | quote }}
+{{- if .Values.influxdb.persistence.storageClass }}
+{{- if (eq "-" .Values.influxdb.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.influxdb.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}

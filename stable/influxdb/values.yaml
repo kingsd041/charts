@@ -1,266 +1,542 @@
-## influxdb image version
-## ref: https://hub.docker.com/r/library/influxdb/tags/
-image:
-  repository: "influxdb"
-  tag: "1.7.6-alpine"
-  pullPolicy: IfNotPresent
 
-## Specify a service type
-## NodePort is default
-## ref: http://kubernetes.io/docs/user-guide/services/
-##
-service:
-  ## Add annotations to service
-  # annotations: {}
-  type: ClusterIP
-  ## Add IP Cluster
-  # clusterIP: ""
-  ## Add external IPs that route to one or more cluster nodes
-  # externalIPs: []
-  ## Specify LoadBalancer IP (only allow on some cloud provider)
-  # loadBalancerIP: ""
-  ## Allow source IPs to access on service (if empty, any access allow)
-  # loadBalancerSourceRanges: []
+# Default values for influxdb-relay.
+influxdb_relay:
+  replicaCount: 2
 
-replicas: 2
+  image:
+    repository: kingsd/influxdb-relay
+    tag: latest
+    pullPolicy: IfNotPresent
 
-## Persist data to a persistent volume
-##
-persistence:
-  enabled: true
-  ## If true will use an existing PVC instead of creating one
-  # useExisting: false
-  ## Name of existing PVC to be used in the influx deployment
-  # name:
-  ## influxdb data Persistent Volume Storage Class
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
+  ## Specify a service type
+  ## NodePort is default
+  ## ref: http://kubernetes.io/docs/user-guide/services/
   ##
-  # storageClass: "-"
-  accessMode: ReadWriteOnce
-  size: 8Gi
+  service:
+    type: ClusterIP
+    ##  If using NodePort or ClusterIP, UDP is supported. If using LoadBalancer, consult your LoadBalancer providers docs to see if UDP is supported
+    udp_enabled: false
+    ## Add annotations to service
+    # annotations: {}
+    default_dns_suffix: svc.cluster.local
 
-## Create default user through Kubernetes job
-## Defaults indicated below
-##
-setDefaultUser:
-  enabled: false
 
-  ## Image of the container used for job
-  ## Default: appropriate/curl:latest
+  ## Configure resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 0.1
+    limits:
+      memory: 16Gi
+      cpu: 8
+
+  ## Configure ingress support
+  ingress:
+    enabled: false
+    tls: false
+    # secretName: my-tls-cert # only needed if tls above is true
+    hostname: influxdb-relay.foobar.com
+    annotations:
+      # kubernetes.io/ingress.class: "nginx"
+      # kubernetes.io/tls-acme: "true"
+
+  ## Node labels for pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  image: appropriate/curl:latest
+  nodeSelector: {}
 
-  ## Deadline for job so it does not retry forever.
-  ## Default: activeDeadline: 300
+  ## Pod AntiAffinity
+  ## toggling to true will enable a soft antiaffinity rule, which will try to distribute pods across nodes
+  podAntiAffinity:
+    enabled: true
+
+  ## Relay Port
+  ## Sets the port for the influxdb-relay container. Should match the HTTP_BIND_ADDR & UDP_BIND_ADDR environmental variables passed to the application
+  relay_port: 9096
+  
+  config:
+    http:
+      name: relay-http
+      bind_addr: :9096
+      health_timeout_ms: 10000
+      rate_limit: 5
+      burst_limit: 10
+      default_ping_response: 200
+    http_output:
+      name: http-backend
+      # location: http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
+      endpoints: write="/write",ping="/ping",query="/query"
+      timeout: 10s
+      skip_tls_verification: false
+    udp:
+      name: relay-udp
+      bind_addr: :9096
+      read_buffer: 0
+      precision: "n"
+    udp_output:
+      name: udp-backend
+      # location: {{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
+      mtu: 512
+
+
+## ------------------------------------------------------
+## InfluxDB
+## ------------------------------------------------------
+influxdb:
+  ## influxdb image version
+  ## ref: https://hub.docker.com/r/library/influxdb/tags/
+  image:
+    repository: "influxdb"
+    tag: "1.7.6-alpine"
+    pullPolicy: IfNotPresent
+
+  ## Specify a service type
+  ## NodePort is default
+  ## ref: http://kubernetes.io/docs/user-guide/services/
   ##
-  activeDeadline: 300
+  service:
+    ## Add annotations to service
+    # annotations: {}
+    type: ClusterIP
+    ## Add IP Cluster
+    # clusterIP: ""
+    ## Add external IPs that route to one or more cluster nodes
+    # externalIPs: []
+    ## Specify LoadBalancer IP (only allow on some cloud provider)
+    # loadBalancerIP: ""
+    ## Allow source IPs to access on service (if empty, any access allow)
+    # loadBalancerSourceRanges: []
 
-  ## Restart policy for job
-  ## Default: OnFailure
-  restartPolicy: OnFailure
+  replicas: 2
 
-  user:
-
-    ## The user name
-    ## Default: "admin"
-    username: "admin"
-
-    ## User password
-    ## single quotes must be escaped (\')
-    ## Default: (Randomly generated 10 characters of AlphaNum)
-    # password:
-
-    ## User privileges
-    ## Default: "WITH ALL PRIVILEGES"
-    privileges: "WITH ALL PRIVILEGES"
-
-## Configure resource requests and limits
-## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-resources: {}
-#  requests:
-#    memory: 256Mi
-#    cpu: 0.1
-#  limits:
-#    memory: 16Gi
-#    cpu: 8
-
-ingress:
-  enabled: false
-  tls: false
-  # secretName: my-tls-cert # only needed if tls above is true
-  hostname: influxdb.foobar.com
-  annotations:
-    # kubernetes.io/ingress.class: "nginx"
-    # kubernetes.io/tls-acme: "true"
-
-## Use an alternate scheduler, e.g. "stork".
-## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
-##
-# schedulerName:
-
-## Node labels for pod assignment
-## Ref: https://kubernetes.io/docs/user-guide/node-selection/
-##
-nodeSelector: {}
-
-## Affinity for pod assignment
-## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-##
-affinity: {}
-
-## Tolerations for pod assignment
-## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-##
-tolerations: []
-# - key: "key"
-#   operator: "Equal|Exists"
-#   value: "value"
-#   effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
-
-## The InfluxDB image uses several environment variables to automatically
-## configure certain parts of the server.
-## Ref: https://hub.docker.com/_/influxdb/
-env:
-  # - name: INFLUXDB_DB
-  #   value: "demo"
-
-## Change InfluxDB configuration parameters below:
-## Defaults are indicated
-## ref: https://docs.influxdata.com/influxdb/v1.1/administration/config/
-config:
-  reporting_disabled: false
-  storage_directory: /var/lib/influxdb
-  rpc:
+  ## Persist data to a persistent volume
+  ##
+  persistence:
     enabled: true
-    bind_address: 8088
-  meta:
-    retention_autocreate: true
-    logging_enabled: true
-  data:
-    query_log_enabled: true
-    cache_max_memory_size: 1073741824
-    cache_snapshot_memory_size: 26214400
-    cache_snapshot_write_cold_duration: 10m0s
-    compact_full_write_cold_duration: 4h0m0s
-    max_series_per_database: 1000000
-    max_values_per_tag: 100000
-    trace_logging_enabled: false
-  coordinator:
-    write_timeout: 10s
-    max_concurrent_queries: 0
-    query_timeout: 0s
-    log_queries_after: 0s
-    max_select_point: 0
-    max_select_series: 0
-    max_select_buckets: 0
-  retention:
-    enabled: true
-    check_interval: 30m0s
-  shard_precreation:
-    enabled: true
-    check_interval: 10m0s
-    advance_period: 30m0s
-  admin:
+    ## If true will use an existing PVC instead of creating one
+    # useExisting: false
+    ## Name of existing PVC to be used in the influx deployment
+    # name:
+    ## influxdb data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # storageClass: "-"
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+  ## Create default user through Kubernetes job
+  ## Defaults indicated below
+  ##
+  setDefaultUser:
     enabled: false
-    bind_address: 8083
-    https_enabled: false
-    https_certificate: /etc/ssl/influxdb.pem
-  monitor:
-    store_enabled: true
-    store_database: _internal
-    store_interval: 10s
-  subscriber:
-    enabled: true
-    http_timeout: 30s
-    insecure_skip_verify: false
-    ca_certs: ""
-    write_concurrency: 40
-    write_buffer_size: 1000
-  http:
-    enabled: true
-    bind_address: 8086
-    auth_enabled: false
-    log_enabled: true
-    write_tracing: false
-    pprof_enabled: true
-    https_enabled: false
-    https_certificate: /etc/ssl/influxdb.pem
-    https_private_key: ""
-    max_row_limit: 10000
-    max_connection_limit: 0
-    shared_secret: "beetlejuicebeetlejuicebeetlejuice"
-    realm: InfluxDB
-    unix_socket_enabled: false
-    bind_socket: /var/run/influxdb.sock
-  graphite:
-    enabled: false
-    bind_address: 2003
-    database: graphite
-    retention_policy: autogen
-    protocol: tcp
-    batch_size: 5000
-    batch_pending: 10
-    batch_timeout: 1s
-    consistency_level: one
-    separator: .
-    udp_read_buffer: 0
-    # Uncomment to define graphite templates
-    # templates:
-    #   - "graphite.metric.*.*.* measurement.run"
-  collectd:
-    enabled: false
-    bind_address: 25826
-    database: collectd
-    retention_policy: autogen
-    batch_size: 5000
-    batch_pending: 10
-    batch_timeout: 10s
-    read_buffer: 0
-    typesdb: /usr/share/collectd/types.db
-    security_level: none
-    auth_file: /etc/collectd/auth_file
-  opentsdb:
-    enabled: false
-    bind_address: 4242
-    database: opentsdb
-    retention_policy: autogen
-    consistency_level: one
-    tls_enabled: false
-    certificate: /etc/ssl/influxdb.pem
-    batch_size: 1000
-    batch_pending: 5
-    batch_timeout: 1s
-    log_point_errors: true
-  udp:
-    enabled: false
-    bind_address: 8089
-    database: udp
-    retention_policy: autogen
-    batch_size: 5000
-    batch_pending: 10
-    read_buffer: 0
-    batch_timeout: 1s
-    precision: "ns"
-  continuous_queries:
-    log_enabled: true
-    enabled: true
-    run_interval: 1s
-  logging:
-    format: auto
-    level: info
-    supress_logo: false
 
-# Allow executing custom init scripts
-#
-# If the container finds any files with the extensions .sh or .iql inside of the
-# /docker-entrypoint-initdb.d folder, it will execute them. The order they are
-# executed in is determined by the shell. This is usually alphabetical order.
-initScripts:
-  enabled: false
-  scripts:
-    init.iql: |+
-      CREATE DATABASE "telegraf" WITH DURATION 30d REPLICATION 1 NAME "rp_30d"
+    ## Image of the container used for job
+    ## Default: appropriate/curl:latest
+    ##
+    image: appropriate/curl:latest
+
+    ## Deadline for job so it does not retry forever.
+    ## Default: activeDeadline: 300
+    ##
+    activeDeadline: 300
+
+    ## Restart policy for job
+    ## Default: OnFailure
+    restartPolicy: OnFailure
+
+    user:
+
+      ## The user name
+      ## Default: "admin"
+      username: "admin"
+
+      ## User password
+      ## single quotes must be escaped (\')
+      ## Default: (Randomly generated 10 characters of AlphaNum)
+      # password:
+
+      ## User privileges
+      ## Default: "WITH ALL PRIVILEGES"
+      privileges: "WITH ALL PRIVILEGES"
+
+  ## Configure resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  resources: {}
+  #  requests:
+  #    memory: 256Mi
+  #    cpu: 0.1
+  #  limits:
+  #    memory: 16Gi
+  #    cpu: 8
+
+  ingress:
+    enabled: false
+    tls: false
+    # secretName: my-tls-cert # only needed if tls above is true
+    hostname: influxdb.foobar.com
+    annotations:
+      # kubernetes.io/ingress.class: "nginx"
+      # kubernetes.io/tls-acme: "true"
+
+  ## Use an alternate scheduler, e.g. "stork".
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  # schedulerName:
+
+  ## Node labels for pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  ## Affinity for pod assignment
+  ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+
+  ## Tolerations for pod assignment
+  ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  # - key: "key"
+  #   operator: "Equal|Exists"
+  #   value: "value"
+  #   effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
+
+  ## The InfluxDB image uses several environment variables to automatically
+  ## configure certain parts of the server.
+  ## Ref: https://hub.docker.com/_/influxdb/
+  env:
+    # - name: INFLUXDB_DB
+    #   value: "demo"
+
+  ## Change InfluxDB configuration parameters below:
+  ## Defaults are indicated
+  ## ref: https://docs.influxdata.com/influxdb/v1.1/administration/config/
+  config:
+    reporting_disabled: false
+    storage_directory: /var/lib/influxdb
+    rpc:
+      enabled: true
+      bind_address: 8088
+    meta:
+      retention_autocreate: true
+      logging_enabled: true
+    data:
+      query_log_enabled: true
+      cache_max_memory_size: 1073741824
+      cache_snapshot_memory_size: 26214400
+      cache_snapshot_write_cold_duration: 10m0s
+      compact_full_write_cold_duration: 4h0m0s
+      max_series_per_database: 1000000
+      max_values_per_tag: 100000
+      trace_logging_enabled: false
+    coordinator:
+      write_timeout: 10s
+      max_concurrent_queries: 0
+      query_timeout: 0s
+      log_queries_after: 0s
+      max_select_point: 0
+      max_select_series: 0
+      max_select_buckets: 0
+    retention:
+      enabled: true
+      check_interval: 30m0s
+    shard_precreation:
+      enabled: true
+      check_interval: 10m0s
+      advance_period: 30m0s
+    admin:
+      enabled: false
+      bind_address: 8083
+      https_enabled: false
+      https_certificate: /etc/ssl/influxdb.pem
+    monitor:
+      store_enabled: true
+      store_database: _internal
+      store_interval: 10s
+    subscriber:
+      enabled: true
+      http_timeout: 30s
+      insecure_skip_verify: false
+      ca_certs: ""
+      write_concurrency: 40
+      write_buffer_size: 1000
+    http:
+      enabled: true
+      bind_address: 8086
+      auth_enabled: false
+      log_enabled: true
+      write_tracing: false
+      pprof_enabled: true
+      https_enabled: false
+      https_certificate: /etc/ssl/influxdb.pem
+      https_private_key: ""
+      max_row_limit: 10000
+      max_connection_limit: 0
+      shared_secret: "beetlejuicebeetlejuicebeetlejuice"
+      realm: InfluxDB
+      unix_socket_enabled: false
+      bind_socket: /var/run/influxdb.sock
+    graphite:
+      enabled: false
+      bind_address: 2003
+      database: graphite
+      retention_policy: autogen
+      protocol: tcp
+      batch_size: 5000
+      batch_pending: 10
+      batch_timeout: 1s
+      consistency_level: one
+      separator: .
+      udp_read_buffer: 0
+      # Uncomment to define graphite templates
+      # templates:
+      #   - "graphite.metric.*.*.* measurement.run"
+    collectd:
+      enabled: false
+      bind_address: 25826
+      database: collectd
+      retention_policy: autogen
+      batch_size: 5000
+      batch_pending: 10
+      batch_timeout: 10s
+      read_buffer: 0
+      typesdb: /usr/share/collectd/types.db
+      security_level: none
+      auth_file: /etc/collectd/auth_file
+    opentsdb:
+      enabled: false
+      bind_address: 4242
+      database: opentsdb
+      retention_policy: autogen
+      consistency_level: one
+      tls_enabled: false
+      certificate: /etc/ssl/influxdb.pem
+      batch_size: 1000
+      batch_pending: 5
+      batch_timeout: 1s
+      log_point_errors: true
+    udp:
+      enabled: false
+      bind_address: 8089
+      database: udp
+      retention_policy: autogen
+      batch_size: 5000
+      batch_pending: 10
+      read_buffer: 0
+      batch_timeout: 1s
+      precision: "ns"
+    continuous_queries:
+      log_enabled: true
+      enabled: true
+      run_interval: 1s
+    logging:
+      format: auto
+      level: info
+      supress_logo: false
+
+  # Allow executing custom init scripts
+  #
+  # If the container finds any files with the extensions .sh or .iql inside of the
+  # /docker-entrypoint-initdb.d folder, it will execute them. The order they are
+  # executed in is determined by the shell. This is usually alphabetical order.
+  initScripts:
+    enabled: false
+    scripts:
+      init.iql: |+
+        CREATE DATABASE "telegraf" WITH DURATION 30d REPLICATION 1 NAME "rp_30d"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####### Nginx
+nginx:
+  image:
+    registry: docker.io
+    repository: nginx
+    tag: 1.17.1
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+  ## String to partially override nginx.fullname template (will maintain the release name)
+  ##
+  # nameOverride:
+
+  ## String to fully override nginx.fullname template
+  ##
+  # fullnameOverride:
+
+  ## Kubernetes configuration
+  ## For minikube, set this to NodePort, elsewhere use LoadBalancer
+  ##
+  service:
+    type: NodePort
+    ## Provide optional annotations to the service i.e. for external-dns
+    # annotations:
+    #   external-dns.alpha.kubernetes.io/hostname: yourservicename.k8s.yourcompany.com
+    ##
+    ## HTTP Port
+    port: 80
+    ##
+    ## loadBalancerIP:
+    ## nodePorts:
+    ##   http: <to set explicitly, choose port between 30000-32767>
+    nodePorts:
+      http: ""
+      relay: ""
+    ## Enable client source IP preservation
+    ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+    ##
+    externalTrafficPolicy: Cluster
+
+  ## Configure the ingress resource that allows you to access the
+  ## NGINX installation. Set up the URL
+  ## ref: http://kubernetes.io/docs/user-guide/ingress/
+  ##
+  ingress:
+    ## Set to true to enable ingress record generation
+    enabled: false
+
+    ## Set this to true in order to add the corresponding annotations for cert-manager
+    certManager: false
+
+    ## Ingress annotations done as key:value pairs
+    ## For a full list of possible ingress annotations, please see
+    ## ref: https://github.com/kubernetes/ingress-nginx/blob/master/docs/annotations.md
+    ##
+    ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
+    ## If certManager is set to true, annotation kubernetes.io/tls-acme: "true" will automatically be set
+    annotations:
+    #  kubernetes.io/ingress.class: nginx
+
+    ## The list of hostnames to be covered with this ingress record.
+    ## Most likely this will be just one host, but in the event more hosts are needed, this is an array
+    hosts:
+    - name: nginx.local
+      path: /
+
+    ## The tls configuration for the ingress
+    ## see: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    tls:
+    - hosts:
+        - nginx.local
+      secretName: nginx.local-tls
+
+    secrets:
+    ## If you're providing your own certificates, please use this to add the certificates as secrets
+    ## key and certificate should start with -----BEGIN CERTIFICATE----- or
+    ## -----BEGIN RSA PRIVATE KEY-----
+    ##
+    ## name should line up with a tlsSecret set further up
+    ## If you're using cert-manager, this is unneeded, as it will create the secret for you if it is not set
+    ##
+    ## It is also possible to create and manage the certificates outside of this helm chart
+    ## Please see README.md for more information
+    # - name: nginx.local-tls
+    #   key:
+    #   certificate:
+
+  nginxConfig:
+    user: nginx
+    worker_processes: 1
+    worker_connections: 1024
+    http:
+      sendfile: "on"
+      keepalive_timeout: 65
+    stream:
+      udp_listen: 9096
+      proxy_timeout: 1s
+      proxy_responses: 1
+  
+  serverConfig:
+    client_max_body_size: "20M"
+
+  ## Liveness Probe. The block is directly forwarded into the deployment, so you can use whatever livenessProbe configuration you want.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+  ##
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  ## Readiness Probe. The block is directly forwarded into the deployment, so you can use whatever readinessProbe configuration you want.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 5
+    timeoutSeconds: 3
+    periodSeconds: 5
+
+  ## Pod annotations
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+
+  ## Resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  # resources: {}
+
+  ## Prometheus Exporter / Metrics
+  ##
+  metrics:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: nginx/nginx-prometheus-exporter
+      tag: 0.1.0
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+    ## Metrics exporter pod Annotation and Labels
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9113"
+      ## Metrics exporter resource requests and limits
+      ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+      ##
+    # resources: {}

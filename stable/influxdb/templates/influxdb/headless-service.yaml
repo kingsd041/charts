@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.influxdb.service.annotations }}
+  annotations:
+{{ toYaml .Values.influxdb.service.annotations | indent 4 }}
+{{- end }}
+  name: {{ template "influxdb.fullname" . }}-headless
+  labels:
+    app: {{ template "influxdb.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  clusterIP: None
+  ports:
+  {{- if .Values.influxdb.config.http.enabled }}
+  - name: api
+    port: {{ .Values.influxdb.config.http.bind_address }}
+    targetPort: {{ .Values.influxdb.config.http.bind_address }}
+  {{- end }}
+
+  {{- if .Values.influxdb.config.udp.enabled }}
+  - name: udp
+    port: {{ .Values.influxdb.config.udp.bind_address }}
+    protocol: UDP
+    targetPort: {{ .Values.influxdb.config.udp.bind_address }}
+  {{- end }}
+
+  selector:
+    app: {{ template "influxdb.fullname" . }}

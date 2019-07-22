@@ -1,0 +1,108 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ template "influxdb.fullname" . }}
+  labels:
+    app: {{ template "influxdb.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .Values.influxdb.replicas }}
+  serviceName: {{ template "influxdb.fullname" . }}-headless
+  template:
+    metadata:
+      labels:
+        app: {{ template "influxdb.fullname" . }}
+        release: "{{ .Release.Name }}"
+    spec:
+      containers:
+      - name: {{ template "influxdb.fullname" . }}
+        image: "{{ .Values.influxdb.image.repository }}:{{ .Values.influxdb.image.tag }}"
+        imagePullPolicy: {{ .Values.influxdb.image.pullPolicy | quote }}
+        resources:
+{{ toYaml .Values.influxdb.resources | indent 10 }}
+        ports:
+        - name: api
+          containerPort: {{ .Values.influxdb.config.http.bind_address }}
+        {{ if .Values.influxdb.config.admin.enabled -}}
+        - name: admin
+          containerPort: {{ .Values.influxdb.config.admin.bind_address }}
+        {{- end }}
+        {{ if .Values.influxdb.config.graphite.enabled -}}
+        - name: graphite
+          containerPort: {{ .Values.influxdb.config.graphite.bind_address }}
+        {{- end }}
+        {{ if .Values.influxdb.config.collectd.enabled -}}
+        - name: collectd
+          containerPort: {{ .Values.influxdb.config.collectd.bind_address }}
+        {{- end }}
+        {{ if .Values.influxdb.config.udp.enabled -}}
+        - name: udp
+          containerPort: {{ .Values.influxdb.config.udp.bind_address }}
+        {{- end }}
+        {{ if .Values.influxdb.config.opentsdb.enabled -}}
+        - name: opentsdb
+          containerPort: {{ .Values.influxdb.config.opentsdb.bind_address }}
+        {{- end }}
+        {{ if .Values.influxdb.env }}
+        env:
+{{ toYaml .Values.influxdb.env | indent 10 }}
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: api
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: api
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.influxdb.config.storage_directory }}
+        - name: config
+          mountPath: /etc/influxdb
+        {{- if .Values.influxdb.initScripts.enabled }}
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+        {{- end }}
+      volumes:
+      - name: data
+      {{- if .Values.influxdb.persistence.enabled }}
+        {{- if not (empty .Values.influxdb.persistence.name) }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.influxdb.persistence.name }}
+        {{- else }}
+        persistentVolumeClaim:
+          claimName: {{ template "influxdb.fullname" . }}
+        {{- end }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      - name: config
+        configMap:
+          name: {{ template "influxdb.fullname" . }}
+      {{- if .Values.influxdb.initScripts.enabled }}
+      - name: init
+        configMap:
+          name: {{ template "influxdb.fullname" . }}-init
+      {{- end }}
+    {{- if .Values.influxdb.schedulerName }}
+      schedulerName: "{{ .Values.influxdb.schedulerName }}"
+    {{- end }}
+    {{- if .Values.influxdb.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.influxdb.nodeSelector | indent 8 }}
+      {{- end -}}
+      {{- if .Values.influxdb.affinity }}
+      affinity:
+{{ toYaml .Values.influxdb.affinity | indent 8 }}
+      {{- end }}
+      {{- if .Values.influxdb.tolerations }}
+      tolerations:
+{{ toYaml .Values.influxdb.tolerations | indent 8 }}
+      {{- end }}

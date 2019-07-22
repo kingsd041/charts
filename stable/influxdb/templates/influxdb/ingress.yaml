@@ -1,0 +1,28 @@
+{{- if .Values.influxdb.ingress.enabled -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "influxdb.fullname" . }}
+  labels:
+    app: {{ template "influxdb.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+{{ toYaml .Values.influxdb.ingress.annotations | indent 4 }}
+spec:
+{{- if .Values.influxdb.ingress.tls }}
+  tls:
+    - hosts:
+      - {{ .Values.influxdb.ingress.hostname | quote }}
+      secretName: {{ .Values.influxdb.ingress.secretName }}
+{{- end }}
+  rules:
+  - host: {{ .Values.influxdb.ingress.hostname }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "influxdb.fullname" . }}
+          servicePort: 8086
+{{- end -}}
