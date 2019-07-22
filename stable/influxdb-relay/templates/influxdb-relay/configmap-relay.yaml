@@ -77,7 +77,7 @@ data:
 {{- range $i, $e := until $replicas }}
     [[udp.output]]
     # name: name of the backend, used for display purposes only.
-    name = {{ $root.Values.config.udp_output.name | quote }}-{{ $i }}
+    name = "{{ $root.Values.config.udp_output.name }}-{{ $i }}"
 
     # location: host and port of backend.
     location = "{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}"
