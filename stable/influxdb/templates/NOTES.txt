@@ -1,15 +1,11 @@
-influxdb-relay can be accessed via port {{ .Values.influxdb_relay.relay_port }} on the following DNS name from within your cluster:
+{{- if .Values.influxdb.setDefaultUser.enabled }}
 
-- http://{{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.influxdb_relay.relay_port }}
+To retrieve the default user name:
 
-You can easily connect to the remote instance with your local influx cli. To forward the API port to localhost:9096 run the following:
+- echo $(kubectl get secret {{ template "influxdb.fullname" . }}-auth -o "jsonpath={.data['influxdb-user']}" --namespace {{ .Release.Namespace }} | base64 --decode)
 
-- kubectl port-forward --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l app={{ template "influxdb-relay.fullname" . }} -o jsonpath='{ .items[0].metadata.name }') 9096:{{ .Values.influxdb_relay.relay_port }}
+To retrieve the default user password:
 
-You can also connect to the influx cli from inside the container. To open a shell session in the InfluxDB pod run the following:
+- echo $(kubectl get secret {{ template "influxdb.fullname" . }}-auth -o "jsonpath={.data['influxdb-password']}" --namespace {{ .Release.Namespace }} | base64 --decode)
 
-- kubectl exec -i -t --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l app={{ template "influxdb-relay.fullname" . }} -o jsonpath='{.items[0].metadata.name}') /bin/sh
-
-To tail the logs for the InfluxDB pod run the following:
-
-- kubectl logs -f --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l app={{ template "influxdb-relay.fullname" . }} -o jsonpath='{ .items[0].metadata.name }')
+{{- end }}
