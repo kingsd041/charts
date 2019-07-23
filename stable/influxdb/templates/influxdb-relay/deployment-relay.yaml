@@ -8,7 +8,7 @@ metadata:
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
-  replicas: {{ .Values.influxdb_relay.replicaCount }}
+  replicas: {{ .Values.influxdb_relay.replicas }}
   template:
     metadata:
       labels:
@@ -57,7 +57,7 @@ spec:
       initContainers:
       - name: check-influxdb
         image: "{{ .Values.influxdb_relay.image.repository }}:{{ .Values.influxdb_relay.image.tag }}"
-        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb-relay.influxdb.fullname" . }}-{{ sub .Values.influxdb_relay.replicaCount 1 }}.{{ template "influxdb-relay.influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }}/ping']
+        command: ['sh', '-c', 'curl -sl -I {{ template "influxdb.fullname" . }}-{{ sub .Values.influxdb_relay.replicas 1 }}.{{ template "influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }}/ping']
       volumes:
       - name: config
         configMap:

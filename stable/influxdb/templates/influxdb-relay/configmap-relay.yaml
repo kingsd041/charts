@@ -1,13 +1,12 @@
 {{- $fullName := include "influxdb-relay.fullname" . }}
-{{- $replicas := .Values.influxdb_relay.replicaCount | int }}
+{{- $replicas := .Values.influxdb_relay.replicas | int }}
 {{- $root := . }}
-
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "influxdb-relay.fullname" . }}-relay
+  name: {{ template "influxdb-relay.fullname" . }}
   labels:
     app: {{ template "influxdb-relay.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -44,7 +43,7 @@ data:
     name = "{{ $root.Values.influxdb_relay.config.http_output.name }}-{{ $i }}"
 
     # location: full URL of the /write endpoint of the backend
-    location = "http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/"
+    location = "http://{{ template "influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/"
     # endpoints: Routes to use on Relay
     # write: Route for standard InfluxDB request
     # write_prom: Route for Prometheus request
@@ -80,7 +79,7 @@ data:
     name = "{{ $root.Values.influxdb_relay.config.udp_output.name }}-{{ $i }}"
 
     # location: host and port of backend.
-    location = "{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}"
+    location = "{{ template "influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.influxdb_relay.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}"
 
     # mtu: maximum output payload size
     mtu = {{ $root.Values.influxdb_relay.config.udp_output.mtu }}

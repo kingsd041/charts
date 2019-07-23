@@ -11,7 +11,7 @@ data:
   influxdb.conf: |-
     client_max_body_size {{ default "20M" .Values.nginx.serverConfig.client_max_body_size }};
     upstream influxdb {
-      server {{ template "influxdb-relay.influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }};
+      server {{ template "influxdb.fullname" . }}-headless.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb.config.http.bind_address }};
     }
     upstream relay {
       server {{ template "influxdb-relay.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.influxdb_relay.service.default_dns_suffix }}:{{ .Values.influxdb_relay.relay_port }};

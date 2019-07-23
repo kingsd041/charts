@@ -1,7 +1,9 @@
 
-# Default values for influxdb-relay.
+## ------------------------------------------------------
+## influxdb_relay
+## ------------------------------------------------------
 influxdb_relay:
-  replicaCount: 2
+  replicas: 2
 
   image:
     repository: kingsd/influxdb-relay
@@ -65,7 +67,7 @@ influxdb_relay:
       default_ping_response: 200
     http_output:
       name: http-backend
-      # location: http://{{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
+      # location: http://{{ template "influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.http.bind_address }}/
       endpoints: write="/write",ping="/ping",query="/query"
       timeout: 10s
       skip_tls_verification: false
@@ -76,7 +78,7 @@ influxdb_relay:
       precision: "n"
     udp_output:
       name: udp-backend
-      # location: {{ template "influxdb-relay.influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb-relay.influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
+      # location: {{ template "influxdb.fullname" $root }}-{{ $i }}.{{ template "influxdb.fullname" $root }}-headless.{{ $root.Release.Namespace }}.{{ $root.Values.service.default_dns_suffix }}:{{ $root.Values.influxdb.config.udp.bind_address }}
       mtu: 512
 
 
@@ -352,30 +354,9 @@ influxdb:
         CREATE DATABASE "telegraf" WITH DURATION 30d REPLICATION 1 NAME "rp_30d"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-####### Nginx
+## ------------------------------------------------------
+## Nginx
+## ------------------------------------------------------
 nginx:
   image:
     registry: docker.io
